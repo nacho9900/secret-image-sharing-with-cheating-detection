@@ -3,6 +3,7 @@ import os
 from collections import defaultdict
 
 from tools.images.BMPReader import BMPReader
+from tools.images.Steganographer import Steganographer
 
 
 class CLI:
@@ -52,6 +53,11 @@ def recover(file, k, directory):
         # So we need to raise an error
         if group_key is None:
             raise ValueError(f"Couldn't find {k} images with same width and height")
+
+        images = image_group[group_key]
+        Steganographer.recover(images[0], k)
+
+
     except FileNotFoundError:
         print(f"El directorio {directory} no existe")
         return

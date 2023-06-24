@@ -2,7 +2,9 @@ class SISSImage:
     """
     SISSImage is a class that represents an image in the Secret Image Sharing Scheme.
     """
-    def __init__(self, width: int, height: int, shadow_number: int, bytes_per_pixel: int, pixels: bytearray, raw_header: bytearray):
+
+    def __init__(self, width: int, height: int, shadow_number: int, bytes_per_pixel: int, pixels: bytes,
+                 raw_header: bytes):
         self.width = width
         self.height = height
         self.ri = shadow_number

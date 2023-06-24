@@ -1,6 +1,5 @@
 from .SISSImage import SISSImage
 
-
 class BMPReader:
     @staticmethod
     def read(path: str) -> SISSImage:
@@ -18,6 +17,7 @@ class BMPReader:
         bits_per_pixel = BMPReader.read_le(bmp, 28)
         # This is shadow number in SISSImage
         bfReserved1 = BMPReader.read_le(bmp, 6)
+        image_size = BMPReader.read_le32(bmp, 34)
 
         raw_header = bmp[0:pixels_offset]
 
@@ -25,8 +25,8 @@ class BMPReader:
             raise ValueError('Only 8-bit bitmaps are supported')
 
         return SISSImage(width=image_width, height=image_height, shadow_number=bfReserved1,
-                         bytes_per_pixel=bits_per_pixel, pixels=bytearray(bmp[pixels_offset:]),
-                         raw_header=bytearray(raw_header))
+                         bytes_per_pixel=bits_per_pixel, pixels=bmp[pixels_offset:pixels_offset + image_size],
+                         raw_header=raw_header)
 
     @staticmethod
     def read_le(file, offset: int) -> int:
