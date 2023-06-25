@@ -1,5 +1,6 @@
 from .SISSImage import SISSImage
 
+
 class BMPReader:
     @staticmethod
     def read(path: str) -> SISSImage:
@@ -26,7 +27,7 @@ class BMPReader:
 
         return SISSImage(width=image_width, height=image_height, shadow_number=bfReserved1,
                          bytes_per_pixel=bits_per_pixel, pixels=bmp[pixels_offset:pixels_offset + image_size],
-                         raw_header=raw_header)
+                         raw_header=raw_header, offset=pixels_offset)
 
     @staticmethod
     def read_le(file, offset: int) -> int:

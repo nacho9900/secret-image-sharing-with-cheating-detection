@@ -4,6 +4,9 @@ from collections import defaultdict
 
 from tools.images.BMPReader import BMPReader
 from tools.images.Steganographer import Steganographer
+from tools.math.PolynomialGF251 import PolynomialGF251
+from tools.math.GF251 import GF251
+from tools.images.SISSImage import SISSImage
 
 
 class CLI:
@@ -55,8 +58,29 @@ def recover(file, k, directory):
             raise ValueError(f"Couldn't find {k} images with same width and height")
 
         images = image_group[group_key]
-        Steganographer.recover(images[0], k)
 
+        sub_shadows = []
+        for i in range(k):
+            sub_shadows.extend(Steganographer.recover_sub_shadows(images[i], k))
+
+        # Group the sub shadows by i
+        sub_shadows_i = defaultdict(list)
+        for sub_shadow in sub_shadows:
+            sub_shadows_i[sub_shadow.i].append(sub_shadow)
+
+        # Build functions
+        f_i_list = defaultdict(PolynomialGF251)
+        g_i_list = defaultdict(PolynomialGF251)
+        for i, sub_shadows_list in sub_shadows_i.items():
+            f_i_list[i] = PolynomialGF251([(sub_shadow.j, sub_shadow.m) for sub_shadow in sub_shadows_list])
+            g_i_list[i] = PolynomialGF251([(sub_shadow.j, sub_shadow.d) for sub_shadow in sub_shadows_list])
+
+        # Evaluate if there fake shadows
+        secret = recover_secret(f_i_list, g_i_list)
+        image = images[0]
+        image.save(os.path.join(directory, f"recovered_{file}"))
+        image.pixels = bytes(secret)
+        image.save(os.path.join(directory, file))
 
     except FileNotFoundError:
         print(f"El directorio {directory} no existe")
@@ -64,6 +88,26 @@ def recover(file, k, directory):
     except ValueError as e:
         print(e)
         return
+
+
+def recover_secret(f_i_list: dict[int, PolynomialGF251], g_i_list: dict[int, PolynomialGF251]) -> list[int]:
+    secret = []
+    for i, f_i, g_i in zip(f_i_list.keys(), f_i_list.values(), g_i_list.values()):
+        if not satisfies_ri(f_i.coefficients[0], g_i.coefficients[0]):
+            raise ValueError(f"La sombra {i} es falsa")
+        if not satisfies_ri(f_i.coefficients[1], g_i.coefficients[1]):
+            raise ValueError(f"La sombra {i} es falsa")
+        secret.extend(f_i.coefficients + g_i.coefficients[2:])
+    return secret
+
+
+
+
+def satisfies_ri(a: int, b: int) -> bool:
+    for ri in range(1, 251):
+        if GF251.add(GF251.multiply(a, ri), b) == GF251.convert_to_gf251(0):
+            return True
+    return False
 
 
 if __name__ == "__main__":

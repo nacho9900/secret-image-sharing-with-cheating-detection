@@ -1,11 +1,13 @@
 class GF251:
+    INVERSES = [pow(i, 251 - 2, 251) for i in range(1, 251)]
+
     @staticmethod
     def divide(a: int, b: int):
         return GF251.multiply(a, GF251.inverse(b))
 
     @staticmethod
     def inverse(a: int):
-        return pow(a, 251 - 2, 251)
+        return GF251.INVERSES[a - 1]
 
     @staticmethod
     def multiply(a: int, b: int):
