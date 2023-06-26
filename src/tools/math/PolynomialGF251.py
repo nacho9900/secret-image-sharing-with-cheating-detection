@@ -11,7 +11,7 @@ class PolynomialGF251:
         :param coefficients: a list of coefficients of the polynomial in GF(251) sorted by degree.
         """
         # c0 + c1x + c2x^2 + ... + cnx^n
-        self.coefficients = coefficients
+        self.coefficients = [GF251.convert_to_gf251(c) for c in coefficients]
         self.degree = len(coefficients) - 1
 
     @staticmethod

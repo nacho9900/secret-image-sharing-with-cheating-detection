@@ -20,3 +20,7 @@ class SISSImage:
 
             # Write out the pixel data
             f.write(self.pixels)
+
+    def set_shadow_number(self, shadow_number: int):
+        self.shadow_number = shadow_number
+        self.raw_header = self.raw_header[:6] + shadow_number.to_bytes(2, byteorder='little') + self.raw_header[8:]

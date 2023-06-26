@@ -36,12 +36,3 @@ class BMPReader:
     @staticmethod
     def read_le32(file, offset: int) -> int:
         return int.from_bytes(file[offset:offset + 4], byteorder='little')
-
-# image = BMPReader.read('src/tools/images/data/Albertshare.bmp')
-#
-# print(f"width: {image.width}")
-# print(f"height: {image.height}")
-# print(f"ri: {image.ri}")
-# print(f"bytes_per_pixel: {image.bytes_per_pixel}")
-# print(f"pixels: {image.pixels}")
-# print(f"raw_header: {image.raw_header}")
