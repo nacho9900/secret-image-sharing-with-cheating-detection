@@ -6,31 +6,29 @@ class PolynomialGF251:
     Represent a Polynomial in GF(251).
     """
 
-    def __init__(self, points: list[tuple[int, int]]):
+    def __init__(self, coefficients: list[int]):
         """
-
-        :param points: a list of f(x) points, where f(x) = y points in GF(251).
+        :param coefficients: a list of coefficients of the polynomial in GF(251) sorted by degree.
         """
-        self.points = points
-        self.degree = len(points) - 1
-
         # c0 + c1x + c2x^2 + ... + cnx^n
-        self.coefficients = self._generate_polynomial()
+        self.coefficients = coefficients
+        self.degree = len(coefficients) - 1
 
-    def _generate_polynomial(self) -> list[int]:
+    @staticmethod
+    def interpolate(points: list[tuple[int, int]]) -> 'PolynomialGF251':
         """
         Generate the coefficients of the polynomial using Gauss-Jordan elimination.
         :return: a list of coefficients of the polynomial in GF(251) sorted by degree.
         """
 
         # Sort the points by x coordinate
-        self.points.sort(key=lambda punto: punto[0])
+        points.sort(key=lambda punto: punto[0])
 
         # Separate the x and y coordinates
-        xs, ys = map(list, zip(*self.points))
+        xs, ys = map(list, zip(*points))
 
         # System size
-        n = len(self.points)
+        n = len(points)
 
         # Vandermonde matrix (A)
         A = []
@@ -67,7 +65,8 @@ class PolynomialGF251:
                     ys[j] = GF251.subtract(ys[j], GF251.multiply(factor, ys[i]))
 
         # The coefficients are the values of ys after Gauss-Jordan
-        return ys
+        # c0 + c1x + c2x^2 + ... + cnx^n
+        return PolynomialGF251(ys)
 
     def evaluate(self, x: int) -> int:
         """

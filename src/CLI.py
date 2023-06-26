@@ -33,6 +33,24 @@ class CLI:
 def distribute(file, k, directory):
     print(f"Distribuyendo {file} con k {k} en el directorio {directory}")
 
+    try:
+        # Read the image
+        image = BMPReader.read(file)
+        data = image.pixels
+
+        # Block size in pixels
+        block_size = (2 * k) - 2
+
+        # Split the image into blocks Bi - i e [1, t]
+        blocks = [data[i:i + block_size] for i in range(0, len(data), block_size)]
+
+
+
+
+    except FileNotFoundError:
+        print(f"Archivo {file} no encontrado")
+        return
+
 
 def recover(file, k, directory):
     print(f"Recuperando {file} con k {k} en el directorio {directory}")
@@ -72,8 +90,8 @@ def recover(file, k, directory):
         f_i_list = defaultdict(PolynomialGF251)
         g_i_list = defaultdict(PolynomialGF251)
         for i, sub_shadows_list in sub_shadows_i.items():
-            f_i_list[i] = PolynomialGF251([(sub_shadow.j, sub_shadow.m) for sub_shadow in sub_shadows_list])
-            g_i_list[i] = PolynomialGF251([(sub_shadow.j, sub_shadow.d) for sub_shadow in sub_shadows_list])
+            f_i_list[i] = PolynomialGF251.interpolate([(sub_shadow.j, sub_shadow.m) for sub_shadow in sub_shadows_list])
+            g_i_list[i] = PolynomialGF251.interpolate([(sub_shadow.j, sub_shadow.d) for sub_shadow in sub_shadows_list])
 
         # Evaluate if there fake shadows
         secret = recover_secret(f_i_list, g_i_list)
@@ -99,8 +117,6 @@ def recover_secret(f_i_list: dict[int, PolynomialGF251], g_i_list: dict[int, Pol
             raise ValueError(f"La sombra {i} es falsa")
         secret.extend(f_i.coefficients + g_i.coefficients[2:])
     return secret
-
-
 
 
 def satisfies_ri(a: int, b: int) -> bool:
