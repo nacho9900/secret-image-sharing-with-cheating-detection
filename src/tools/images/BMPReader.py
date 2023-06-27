@@ -3,13 +3,13 @@ from .SISSImage import SISSImage
 
 class BMPReader:
     @staticmethod
-    def read(path: str) -> SISSImage:
+    def read(path: str, name: str) -> SISSImage:
         with open(path, 'rb') as f:
             bmp = f.read()
 
         # Check the signature
         if bmp[0:2] != b'BM':
-            raise ValueError('Not a bitmap file')
+            raise ValueError(f"El archivo {path} no es un archivo BMP válido")
 
         # file_size = read_le32(bmp, 2)
         pixels_offset = BMPReader.read_le32(bmp, 10)
@@ -19,15 +19,16 @@ class BMPReader:
         # This is shadow number in SISSImage
         bfReserved1 = BMPReader.read_le(bmp, 6)
         image_size = BMPReader.read_le32(bmp, 34)
+        name = name
 
         raw_header = bmp[0:pixels_offset]
 
         if bits_per_pixel != 8:
-            raise ValueError('Only 8-bit bitmaps are supported')
+            raise ValueError(f"El archivo BMP {path} debe tener 8 bits por pixel")
 
         return SISSImage(width=image_width, height=image_height, shadow_number=bfReserved1,
                          bytes_per_pixel=bits_per_pixel, pixels=bmp[pixels_offset:pixels_offset + image_size],
-                         raw_header=raw_header, offset=pixels_offset)
+                         raw_header=raw_header, offset=pixels_offset, name=name)
 
     @staticmethod
     def read_le(file, offset: int) -> int:

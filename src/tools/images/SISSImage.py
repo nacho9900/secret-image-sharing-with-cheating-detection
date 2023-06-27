@@ -4,7 +4,7 @@ class SISSImage:
     """
 
     def __init__(self, width: int, height: int, shadow_number: int, bytes_per_pixel: int, pixels: bytes,
-                 raw_header: bytes, offset: int):
+                 raw_header: bytes, offset: int, name: str):
         self.width = width
         self.height = height
         self.shadow_number = shadow_number
@@ -12,6 +12,7 @@ class SISSImage:
         self.pixels = pixels
         self.raw_header = raw_header
         self.offset = offset
+        self.name = name
 
     def save(self, file_name):
         with open(file_name, 'wb') as f:

@@ -21,7 +21,7 @@ class CLI:
         args = parser.parse_args()
 
         if args.k < 3 or args.k > 8:
-            print("k should be between 3 and 8")
+            print("K debe estar entre 3 y 8")
             return
 
         if args.operation == "d":
@@ -38,20 +38,15 @@ def distribute(file, k, directory):
     :param directory: the directory where the carrier images are
     :return: None
     """
-    print(f"Distributing the secret image '{file}' in {k}")
-
     try:
         # Read carriers images
         # I will assume at this point that the images will be the same size
         bmp_files = [f for f in os.listdir(directory) if f.endswith('.bmp')]
-        carrier_images = [BMPReader.read(f"{directory}/{bmp_file}") for bmp_file in bmp_files]
+        carrier_images = [BMPReader.read(f"{directory}/{bmp_file}", bmp_file) for bmp_file in bmp_files]
         n = len(carrier_images)
 
-        print(f"{n} carrier images found")
-        print(f"Distributing over ({k}, {n}) scheme")
-
         # Read the image
-        image = BMPReader.read(file)
+        image = BMPReader.read(file, file)
         data = image.pixels
 
         # Block size in pixels
@@ -97,10 +92,13 @@ def distribute(file, k, directory):
             shadow = shadows[j]
             carrier_image = carrier_images[j - 1]
             carrier_image = Steganographer.embed_sub_shadows(carrier_image, shadow, k)
-            carrier_image.save(f"{directory}/shadow_{j}.bmp")
+            carrier_image.save(f"{directory}/{carrier_image.name}")
 
     except FileNotFoundError:
         print(f"Archivo {file} no encontrado")
+        return
+    except ValueError as e:
+        print(f"Ocurrió un error al distribuir la imagen: {e}")
         return
 
 
@@ -112,7 +110,6 @@ def calculate_g_values(a, ri) -> int:
 
 
 def recover(file, k, directory):
-    print(f"Recuperando {file} con k {k} en el directorio {directory}")
     image_group = defaultdict(list)
     group_key = None
     try:
@@ -121,18 +118,17 @@ def recover(file, k, directory):
         # We will use BMPReader.read to read the images
         # We will use SISSImage.width and SISSImage.height to check if the images have the same width and height
         for bmp_file in bmp_files:
-            image = BMPReader.read(os.path.join(directory, bmp_file))
+            image = BMPReader.read(os.path.join(directory, bmp_file), bmp_file)
             key = f"{image.width}x{image.height}"
             image_group[key].append(image)
             if len(image_group[key]) == k:
                 group_key = key
-                print(f"Found {k} images with width {image.width} and height {image.height}")
                 break
 
         # If we can't find K images with same width and height, then we can't recover the secret image
         # So we need to raise an error
         if group_key is None:
-            raise ValueError(f"Couldn't find {k} images with same width and height")
+            raise ValueError(f"No se pudieron encontrar {k} imágenes con el mismo ancho y alto")
 
         images = image_group[group_key]
 
@@ -155,7 +151,6 @@ def recover(file, k, directory):
         # Evaluate if there fake shadows
         secret = recover_secret(f_i_list, g_i_list)
         image = images[0]
-        image.save(os.path.join(directory, f"recovered_{file}"))
         image.pixels = bytes(secret)
         image.save(os.path.join(directory, file))
 
@@ -163,7 +158,7 @@ def recover(file, k, directory):
         print(f"El directorio {directory} no existe")
         return
     except ValueError as e:
-        print(e)
+        print(f"Ocurrió un error al recuperar la imagen secreta: {e}")
         return
 
 

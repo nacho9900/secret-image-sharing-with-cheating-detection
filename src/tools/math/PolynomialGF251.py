@@ -48,7 +48,8 @@ class PolynomialGF251:
                         ys[i], ys[j] = ys[j], ys[i]  # Swap ys
                         break
                 else:
-                    raise ValueError("El sistema de ecuaciones no tiene solución única")
+                    raise ValueError(
+                        "No se puede interpolar el polinomio, el sistema de ecuaciones no tiene solución única")
 
             # Make the pivot 1
             inv_diagonal = GF251.inverse(A[i][i])
